@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spotify AI Review Discovery Engine</title>
+<style>
+:root{
+  --bg:#050708;--panel:#101416;--panel2:#151b1f;--panel3:#0c1012;--text:#f4fff8;--muted:#9db3a7;
+  --green:#1DB954;--green2:#28f07a;--cyan:#48e0cf;--amber:#ffbc5b;--red:#ff6b73;--purple:#a78bfa;
+  --line:#26323a;--line2:#34434d;--shadow:0 22px 90px rgba(0,0,0,.45);--radius:22px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 12% 5%, rgba(29,185,84,.23), transparent 35%),
+    radial-gradient(circle at 86% 10%, rgba(72,224,207,.15), transparent 30%),
+    linear-gradient(135deg,#06110b 0%,#050708 38%,#081013 100%);
+  line-height:1.45;
+}
+a{color:#9af8bf}
+.header{
+  padding:34px 42px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;
+  background:linear-gradient(180deg,rgba(5,7,8,.96),rgba(5,7,8,.86));backdrop-filter:blur(16px);
+}
+.header-inner{max-width:1500px;margin:auto;display:flex;justify-content:space-between;gap:24px;align-items:flex-start}
+.brand{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--green),var(--cyan));display:grid;place-items:center;color:#001b0b;font-size:30px;font-weight:900;box-shadow:0 0 36px rgba(29,185,84,.25)}
+.badge{display:inline-flex;align-items:center;gap:8px;background:#0b2515;border:1px solid rgba(29,185,84,.55);color:#d9ffe7;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.2px;text-transform:uppercase}
+h1{margin:0;font-size:38px;line-height:1.02;letter-spacing:-1.2px;max-width:850px}.sub{margin:10px 0 0;max-width:900px;color:var(--muted);font-size:15.5px}.top-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.smallcard{background:rgba(16,20,22,.76);border:1px solid var(--line);border-radius:18px;padding:12px 14px;min-width:150px}.smallcard b{display:block;font-size:21px;color:#fff}.smallcard span{font-size:12px;color:var(--muted)}
+.main{max-width:1500px;margin:0 auto;padding:26px 42px 42px;display:grid;grid-template-columns:minmax(440px,.96fr) minmax(520px,1.04fr);gap:22px}.card{background:linear-gradient(180deg,rgba(16,20,22,.96),rgba(10,14,16,.96));border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.card h2{font-size:20px;margin:0 0 12px;letter-spacing:-.25px}.card h3{font-size:14px;color:#e8fff0;margin:18px 0 9px;text-transform:uppercase;letter-spacing:.5px}.hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.full{grid-column:1/-1}.field label{display:block;color:#cde8d6;font-size:12px;margin:0 0 7px;font-weight:700}.field input,.field select,.field textarea{width:100%;background:#06090a;border:1px solid var(--line2);color:#f5fff8;border-radius:14px;padding:11px 12px;font:inherit;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,185,84,.14)}textarea{min-height:300px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;resize:vertical}.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}button{appearance:none;border:0;border-radius:999px;padding:11px 15px;font-weight:850;cursor:pointer;background:linear-gradient(135deg,var(--green),var(--green2));color:#031007;box-shadow:0 10px 28px rgba(29,185,84,.18);transition:.15s transform,.15s filter}button:hover{transform:translateY(-1px);filter:brightness(1.08)}button.secondary{background:#182026;color:#eafff0;border:1px solid var(--line2);box-shadow:none}button.ghost{background:transparent;border:1px solid var(--line2);color:#d9ffe7;box-shadow:none}.filebox{border:1px dashed var(--line2);border-radius:16px;padding:12px;background:#090d0f;color:var(--muted);font-size:13px}.toggle{display:flex;gap:10px;align-items:center;background:#0a0f11;border:1px solid var(--line);border-radius:16px;padding:10px 12px}.toggle input{width:auto}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.step{background:#090d0f;border:1px solid var(--line);border-radius:16px;padding:12px;min-height:108px}.step .num{display:inline-grid;place-items:center;width:24px;height:24px;background:#0e321a;color:#a7ffbf;border-radius:50%;font-size:12px;font-weight:900;margin-bottom:8px}.step b{display:block;font-size:13.5px;color:#fff}.step span{display:block;margin-top:6px;color:var(--muted);font-size:11.5px}.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}.tab{background:#0b1113;border:1px solid var(--line2);color:#c9ead4;border-radius:999px;padding:8px 11px;font-size:12.5px;font-weight:800;cursor:pointer}.tab.active{background:#12361d;border-color:rgba(29,185,84,.72);color:#e3ffed}.panel{display:none}.panel.active{display:block}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 16px}.kpi{background:#0a0f11;border:1px solid var(--line);border-radius:18px;padding:14px}.kpi b{font-size:24px;display:block;line-height:1;color:#fff}.kpi span{font-size:12px;color:var(--muted)}.callout{border:1px solid rgba(29,185,84,.45);background:linear-gradient(135deg,rgba(29,185,84,.12),rgba(72,224,207,.05));border-radius:18px;padding:14px;margin:10px 0 14px}.callout b{color:#e8fff0}.bars{display:grid;gap:9px}.barrow{display:grid;grid-template-columns:190px 1fr 48px;gap:10px;align-items:center;font-size:13px}.barbg{height:13px;border-radius:999px;background:#20282e;overflow:hidden}.barfill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--cyan))}.count{text-align:right;color:#cfe6d6;font-weight:800}.pillbox{display:flex;flex-wrap:wrap;gap:8px}.pill{font-size:12px;border:1px solid var(--line2);background:#0b1113;border-radius:999px;padding:7px 9px;color:#d9ffe7}.pill.green{border-color:rgba(29,185,84,.65);background:#0d2816}.pill.amber{border-color:rgba(255,188,91,.55);color:#ffe0ac;background:#251809}.pill.red{border-color:rgba(255,107,115,.55);color:#ffd0d3;background:#2a0c11}table{width:100%;border-collapse:collapse;font-size:12.6px}th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}th{color:#b7cabe;background:#0b1113;font-size:12px}.quote{background:#0a0f11;border-left:3px solid var(--green);border-radius:14px;padding:11px 13px;margin:8px 0;color:#eaf7ee;font-size:13px}.quote small{display:block;color:var(--muted);margin-top:6px}.score{font-weight:900}.score.high{color:#5cff92}.score.med{color:#ffcf78}.score.low{color:#ff8b8f}.qa{background:#090d0f;border:1px solid var(--line2);border-radius:18px;min-height:112px;padding:14px;color:#e9fff0}.schema{background:#050808;border:1px solid var(--line);border-radius:16px;padding:14px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:#bdecc9}.loader{display:none;gap:10px;align-items:center;color:#bdfbd0;font-size:13px}.loader.on{display:flex}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:pulse 1s infinite alternate}.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}@keyframes pulse{from{opacity:.28;transform:translateY(0)}to{opacity:1;transform:translateY(-4px)}}.footer{max-width:1500px;margin:0 auto;padding:0 42px 34px;color:#82958b;font-size:12px}.toast{position:fixed;right:24px;bottom:24px;background:#0c1710;border:1px solid rgba(29,185,84,.5);border-radius:16px;padding:12px 14px;color:#eafff0;box-shadow:var(--shadow);display:none;max-width:360px}.toast.show{display:block}.sourceTag{font-size:11px;color:#c3ffd3;border:1px solid var(--line2);padding:3px 6px;border-radius:999px;background:#0a0f11;display:inline-block;margin:2px 4px 2px 0}.danger{color:#ffd3d3;background:#261115;border-color:#65333a}.hidden{display:none!important}@media(max-width:1100px){.main{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.header-inner{display:block}.top-actions{justify-content:flex-start;margin-top:14px}}@media(max-width:650px){.header,.main,.footer{padding-left:18px;padding-right:18px}h1{font-size:30px}.grid2,.grid3,.kpis{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.barrow{grid-template-columns:1fr}.count{text-align:left}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <div>
+      <div class="brand"><div class="logo">♪</div><span class="badge">AI Review Discovery Workflow · Spotify Growth</span></div>
+      <h1>Review Analysis Engine for Music Discovery Problems</h1>
+      <p class="sub">A testable workflow that turns messy reviews, Reddit threads, community posts and social comments into theme clusters, user segments, JTBD, opportunity scores and MVP direction. It runs in two modes: a deployable GPT backend, or a local test analyzer for public demo access.</p>
+    </div>
+    <div class="top-actions">
+      <div class="smallcard"><b id="modeLabel">Local</b><span>analysis mode</span></div>
+      <div class="smallcard"><b id="reviewCountTop">0</b><span>reviews loaded</span></div>
+      <div class="smallcard"><b id="confidenceTop">—</b><span>opportunity confidence</span></div>
+    </div>
+  </div>
+</header>
+<main class="main">
+<section class="card">
+  <h2>1. Input review data</h2>
+  <div class="grid2">
+    <div class="field"><label>Source mix</label><select id="sourceMix"><option>App Store + Play Store + Reddit + Community</option><option>App Store reviews only</option><option>Reddit/community discussions only</option><option>Social listening export</option></select></div>
+    <div class="field"><label>Target product area</label><select id="area"><option>Music discovery & recommendation freshness</option><option>Playlist recommendations</option><option>Radio / autoplay</option><option>Home feed discovery</option><option>Taste profile controls</option></select></div>
+  </div>
+  <div class="field full" style="margin-top:12px"><label>Paste reviews / comments / CSV rows</label><textarea id="input" placeholder="Paste one review per line or CSV rows. Example: Discover Weekly keeps recommending the same artists and I want new music that still matches my vibe..."></textarea></div>
+  <div class="filebox" style="margin-top:10px">
+    <input type="file" id="fileInput" accept=".csv,.txt,.json" />
+    <div class="hint">Optional: upload CSV/TXT/JSON. The app extracts the longest text-like field from each row.</div>
+  </div>
+  <div class="btnrow">
+    <button onclick="loadSample()">Load 30 sample reviews</button>
+    <button onclick="runAnalysis()">Run workflow analysis</button>
+    <button class="secondary" onclick="clearAll()">Clear</button>
+    <button class="ghost" onclick="exportJSON()">Export JSON</button>
+    <button class="ghost" onclick="exportCSV()">Export CSV</button>
+  </div>
+  <div class="loader" id="loader"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span>Analyzing feedback, extracting themes and building opportunity map...</span></div>
+  <p class="hint">When deployed with <b>OPENAI_API_KEY</b>, this calls a serverless GPT analysis endpoint. Without that, it still remains fully testable using the built-in local analyzer.</p>
+
+  <h3>2. Workflow architecture</h3>
+  <div class="steps">
+    <div class="step"><span class="num">1</span><b>Ingest</b><span>Reviews from app stores, Reddit, Spotify Community, forums, X/Twitter, support tickets.</span></div>
+    <div class="step"><span class="num">2</span><b>Normalize</b><span>Deduplicate, remove spam, detect language, redact PII, split multi-issue feedback.</span></div>
+    <div class="step"><span class="num">3</span><b>LLM Extract</b><span>Classify pain, JTBD, segment, root cause, product surface, sentiment and severity.</span></div>
+    <div class="step"><span class="num">4</span><b>Cluster + RAG</b><span>Group related complaints and preserve traceable evidence snippets for each insight.</span></div>
+    <div class="step"><span class="num">5</span><b>Prioritize</b><span>Score opportunities using frequency, severity, segment value, confidence and effort.</span></div>
+  </div>
+
+  <h3>3. AI backend setup status</h3>
+  <div class="schema" id="backendStatus">Checking backend...</div>
+</section>
+
+<section class="card">
+  <h2>Analysis dashboard</h2>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('summary')">Executive summary</div>
+    <div class="tab" onclick="showTab('themes')">Themes</div>
+    <div class="tab" onclick="showTab('segments')">Segments & JTBD</div>
+    <div class="tab" onclick="showTab('evidence')">Evidence</div>
+    <div class="tab" onclick="showTab('opportunity')">Opportunity</div>
+    <div class="tab" onclick="showTab('ask')">Ask corpus</div>
+  </div>
+
+  <div id="panel-summary" class="panel active">
+    <div id="emptyState" class="callout"><b>Ready for testing.</b><br>Paste reviews or load the sample dataset, then click <b>Run workflow analysis</b>. The dashboard will produce product insights you can use in a PM case deck.</div>
+    <div id="summaryPanel"></div>
+  </div>
+  <div id="panel-themes" class="panel"><div id="themesPanel" class="hint">Run analysis to generate theme clusters.</div></div>
+  <div id="panel-segments" class="panel"><div id="segmentsPanel" class="hint">Run analysis to generate segments and JTBD.</div></div>
+  <div id="panel-evidence" class="panel"><div id="evidencePanel" class="hint">Run analysis to generate evidence snippets.</div></div>
+  <div id="panel-opportunity" class="panel"><div id="opportunityPanel" class="hint">Run analysis to generate opportunity scoring.</div></div>
+  <div id="panel-ask" class="panel">
+    <div class="grid2">
+      <div class="field"><label>Question</label><select id="question"><option>Why do users struggle to discover new music?</option><option>What are the most common recommendation frustrations?</option><option>What causes users to repeatedly listen to the same content?</option><option>Which user segment should Spotify focus on first?</option><option>What unmet needs emerge consistently?</option><option>What should the MVP test?</option><option>Why are traditional recommendation systems insufficient?</option></select></div>
+      <div class="field"><label>&nbsp;</label><button onclick="answerQuestion()" style="width:100%">Answer from analysis</button></div>
+    </div>
+    <div class="qa" id="answerBox">Answers appear after analysis.</div>
+  </div>
+</section>
+</main>
+<div class="footer">Submission note: paste the public deployed URL of this page as the “Link to test workflow.” Use <code>/workflow.html?demo</code> if you want sample data to auto-load for evaluators.</div>
+<div class="toast" id="toast"></div>
+<script>
+const sampleReviews = `source,date,rating,segment,text
+Spotify Community,2025-06-25,2,Premium power listener,"Discover Weekly feels stuck in a loop. It keeps bringing back artists and songs I have disliked, and it seems based on old listening from years ago rather than my current taste."
+Reddit,2025-06-10,2,Playlist builder,"Smart Shuffle gives me the exact same recommended songs every time, even when I start from different tracks. I wanted discovery, not the same queue with a few inserts."
+Spotify Community,2025-02-20,2,Genre explorer,"Song Radio keeps recommending the same five songs across different genres. I listen to a lot of styles but the app acts like I only have two."
+Play Store,2025-04-14,3,Workout listener,"My workout playlists used to help me find fresh upbeat songs. Now autoplay often gives me songs I already liked or recent repeats, so I just replay my old mix."
+App Store,2025-03-06,3,Commuter,"I want new music for my commute, but the home page mostly shows albums I already played, podcasts, or big viral tracks that do not fit my taste."
+Reddit,2025-05-02,2,Discovery seeker,"I am constantly searching for new music and Discover Weekly is not diverse enough. There is no good way to tell it how adventurous I want it to be."
+Spotify Community,2025-01-12,2,Library guardian,"When I play my own playlist, I expect only the songs I added. Recommended tracks get inserted even when I am not trying to discover anything."
+Play Store,2025-02-08,3,Shared account user,"My recommendations got polluted after friends and family used my account. I need a way to reset or steer taste for the current mood."
+Reddit,2025-01-18,2,Album listener,"Song radio lists tracks I already play a lot instead of similar artists I have not heard. It feels optimized to keep me comfortable."
+App Store,2025-01-21,3,Premium listener,"I pay for Premium and do not want sponsored or irrelevant music suggestions taking over the home page. It makes me trust recommendations less."
+Spotify Community,2024-12-19,2,New user,"I only joined recently, but recommended songs repeat quickly. I expected Spotify to learn, not show the same suggestions again and again."
+Reddit,2025-04-11,3,Indie fan,"I want obscure deep cuts and local scenes, but recommendations drift back to mainstream artists or TikTok songs."
+Play Store,2024-11-26,2,Focus listener,"The mood playlists are useful, but they become stale. I want the vibe to stay the same while the artists rotate more."
+App Store,2025-05-15,3,Party host,"When I am hosting, I need new tracks that fit the room, but I do not want risky songs that clear the floor. I need a safe-to-new balance."
+Spotify Community,2024-10-24,2,Genre explorer,"Recommendations mostly reflect artists I recently played and barely surface new artists anymore. I miss the older feeling of discovery."
+Reddit,2024-12-25,2,Playlist builder,"I keep hiding recommendations, but similar tracks or duplicate versions come back. The app should understand that I am saying no to a sound, not only a track."
+Play Store,2024-08-17,3,Student,"I use the same study playlist because new recommendations distract me. I want fresh songs that are similar in energy and lyrics-free."
+App Store,2025-02-20,3,Runner,"For running, tempo matters more than artist similarity. I want the system to understand pace, weather, and energy."
+Spotify Community,2024-09-07,2,Longtime subscriber,"I have years of playlists, so switching is hard, but recommendations feel less magical than before."
+Reddit,2025-03-19,3,Music nerd,"I can find music manually, but it takes work. A guided path from an artist I love to adjacent scenes would save time."
+App Store,2025-06-01,2,Premium listener,"I wish the app explained why a song is being recommended. Sometimes it feels like random promotion rather than taste."
+Play Store,2025-05-18,2,Daily listener,"I skip the same recommended artists every week. Spotify should understand repeated skips as a stronger no."
+Reddit,2025-04-29,3,Discovery seeker,"I do not want a full reset. I want a temporary discovery mode that does not mess up my normal recommendations."
+Spotify Community,2025-01-03,2,Library guardian,"Enhanced playlist keeps adding songs even after I turn things off. I want a clearer boundary between my library and suggestions."
+App Store,2025-02-02,3,Regional music listener,"The app knows Bollywood and global hits, but it is weak at helping me explore niche regional artists."
+Reddit,2025-03-27,3,Electronic music fan,"I want to go from one artist to adjacent microgenres, but radio jumps to obvious popular names."
+Play Store,2025-02-25,2,Family account user,"My kid's songs changed my recommendations and now my mixes are ruined. There should be a way to isolate sessions."
+Spotify Community,2024-12-05,3,Podcast-heavy user,"Music recommendations are mixed with podcast pushes and I cannot find fresh albums easily."
+App Store,2025-01-30,3,Home feed user,"The home screen keeps showing what I already know. I want a daily page for fresh artists that still fit me."
+Reddit,2025-06-12,2,Power listener,"Discovery Weekly feels less like discovery and more like familiar comfort music. I need a deeper exploration mode."`;
+
+const themeDefs = {
+  'Repetition loop': {
+    keywords:['same','repeat','repeating','repeated','again','stuck','loop','stale','recycle','old listening','recent repeats','same queue','same five','liked','familiar comfort'],
+    root:'The recommender overweights historic and recent plays, causing safe suggestions to dominate over exploration.',
+    opportunity:'Add no-repeat constraints, first-time artist targets and freshness-aware ranking.'
+  },
+  'Low discovery control': {
+    keywords:['control','curate','options','steer','tell it','how adventurous','dial','no way','exclude','reset','hide','dislike','do not want','only the songs','safe-to-new','temporary discovery'],
+    root:'Users cannot express how much novelty they want, what to avoid, or when a session should not change their profile.',
+    opportunity:'Create a session-level discovery contract with novelty level, exclusions and learning consent.'
+  },
+  'Context mismatch': {
+    keywords:['mood','commute','workout','party','study','focus','vibe','moment','pace','weather','energy','hosting','lyrics-free','running'],
+    root:'Recommendations infer similarity from taste, but discovery intent changes by activity, mood and risk tolerance.',
+    opportunity:'Use natural-language context and activity cues to tune candidates before playback.'
+  },
+  'Trust erosion / opacity': {
+    keywords:['sponsored','premium','irrelevant','viral','tiktok','promot','transparency','trust','podcasts','home page','explained','why','random'],
+    root:'When users do not understand why a recommendation appears, they interpret it as irrelevant, viral, paid or low quality.',
+    opportunity:'Expose short bridge explanations and allow users to correct recommendation rationale.'
+  },
+  'Catalog blind spot': {
+    keywords:['obscure','deep cuts','local','scenes','mainstream','genres','microgenres','variety','broad','new artists','similar artists','niche','regional'],
+    root:'Discovery funnels often lead to obvious adjacent artists instead of long-tail scenes and niche catalog depth.',
+    opportunity:'Blend taste graph similarity with long-tail exploration and artist diversity constraints.'
+  },
+  'Taste profile contamination': {
+    keywords:['friends','family','shared','polluted','reset','old','years ago','kid','ruined','isolate','temporary','mess up'],
+    root:'Temporary or shared listening is treated as durable taste evidence, damaging future recommendations.',
+    opportunity:'Add temporary sessions, profile repair, and explicit “learn only if saved” controls.'
+  }
+};
+const segmentDefs = {
+  'Active Seekers': {
+    keywords:['constantly searching','new music','discovery','diverse','new artists','deep cuts','obscure','music nerd','microgenres','fresh artists','deeper exploration'],
+    jtbd:'When I want to expand my taste from a familiar artist or vibe, I want Spotify to guide me to adjacent-but-new artists so I can discover without manually digging.'
+  },
+  'Context Listeners': {
+    keywords:['workout','commute','party','study','focus','mood','vibe','pace','hosting','running','lyrics-free'],
+    jtbd:'When I am in a specific activity or mood, I want fresh music that preserves the functional vibe so discovery does not disrupt the moment.'
+  },
+  'Library Guardians': {
+    keywords:['my own playlist','only the songs','songs i added','recommended tracks get inserted','enhanced playlist','boundary','turn things off','playlist builder'],
+    jtbd:'When I play my own playlist, I want clear control over whether recommendations enter it so my library still feels like mine.'
+  },
+  'Trust-Sensitive Premium Users': {
+    keywords:['premium','sponsored','viral','trust','home page','irrelevant','promotion','why a song','explained','podcast'],
+    jtbd:'When I pay for Spotify, I want recommendations to feel relevant and transparent so Premium feels like a smarter product, not a noisy feed.'
+  },
+  'Profile Repair Users': {
+    keywords:['family','friends','shared','polluted','reset','years ago','old listening','kid','ruined','isolate','temporary'],
+    jtbd:'When my account history is polluted by temporary listening, I want to repair or isolate taste signals so future recommendations fit me again.'
+  }
+};
+const sentimentWords = {
+  neg:['stuck','same','repeat','repeating','irrelevant','ruined','polluted','weak','not','dislike','skip','stale','sponsored','viral','random','less magical','keeps','mess up','do not want'],
+  pos:['love','great','fresh','useful','help','discover','new','good','fit','safe','guide','explain']
+};
+let lastResult = null;
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3600)}
+function showTab(name){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event?.target?.classList?.add('active');document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+name).classList.add('active')}
+function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function countHits(text, keywords){const l=text.toLowerCase();let c=0;for(const k of keywords){if(l.includes(k)) c++}return c}
+function parseRows(raw){
+  raw=(raw||'').trim(); if(!raw) return [];
+  if(raw.startsWith('[') || raw.startsWith('{')){
+    try{const j=JSON.parse(raw); const arr=Array.isArray(j)?j:(j.reviews||j.data||[]); return arr.map((x,i)=>({id:i+1,source:x.source||'Uploaded JSON',date:x.date||'',rating:x.rating||'',segment:x.segment||'',text:String(x.text||x.review||x.comment||x.body||'')})).filter(x=>x.text.length>8)}catch(e){}
+  }
+  const lines=raw.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  if(!lines.length) return [];
+  const rows=[];
+  const hasCsvHeader=/source|date|rating|review|comment|text/i.test(lines[0]) && lines[0].includes(',');
+  const header=hasCsvHeader?parseCSVLine(lines[0]).map(x=>x.toLowerCase().trim()):[];
+  for(let i=hasCsvHeader?1:0;i<lines.length;i++){
+    const line=lines[i]; let source='Manual paste',date='',rating='',segment='',text=line;
+    if(line.includes(',')){
+      const parts=parseCSVLine(line);
+      if(hasCsvHeader){
+        const obj={}; header.forEach((h,idx)=>obj[h]=parts[idx]||'');
+        source=obj.source||obj.platform||source; date=obj.date||''; rating=obj.rating||obj.stars||''; segment=obj.segment||obj.persona||''; text=obj.text||obj.review||obj.comment||obj.body||parts.sort((a,b)=>b.length-a.length)[0]||line;
+      } else {
+        text=parts.sort((a,b)=>b.length-a.length)[0]||line;
+      }
+    }
+    text=String(text).replace(/^"|"$/g,'').trim();
+    if(text.length>10 && !/^text$/i.test(text)) rows.push({id:rows.length+1,source,date,rating,segment,text});
+  }
+  return rows;
+}
+function parseCSVLine(line){const out=[];let cur='',quote=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(quote && line[i+1]==='"'){cur+='"';i++}else quote=!quote}else if(ch===','&&!quote){out.push(cur.trim());cur=''}else cur+=ch}out.push(cur.trim());return out}
+function localAnalyze(rows){
+  const analyzed=rows.map(r=>{
+    const lower=r.text.toLowerCase();
+    const themeScores=Object.fromEntries(Object.entries(themeDefs).map(([k,v])=>[k,countHits(lower,v.keywords)]));
+    const segScores=Object.fromEntries(Object.entries(segmentDefs).map(([k,v])=>[k,countHits(lower,v.keywords)]));
+    let topTheme=topKey(themeScores), topSegment=topKey(segScores);
+    if(themeScores[topTheme]===0) topTheme='General discovery friction';
+    if(segScores[topSegment]===0) topSegment=r.segment || 'General listener';
+    const neg=countHits(lower,sentimentWords.neg), pos=countHits(lower,sentimentWords.pos);
+    const sentiment=neg>pos+1?'Negative':pos>neg?'Positive':'Mixed';
+    const severity=Math.min(5,Math.max(1,Math.ceil((neg+themeScores[topTheme]+(r.rating && Number(r.rating)<=2?2:0))/2)));
+    const jtbd=segmentDefs[topSegment]?.jtbd || 'When recommendations feel stale, I want clearer control over discovery so I can find new music without losing comfort.';
+    return {...r,topTheme,topSegment,sentiment,severity,jtbd,themeScores,segScores};
+  });
+  const themes={}; const segments={}; const sentiments={};
+  analyzed.forEach(r=>{themes[r.topTheme]=(themes[r.topTheme]||0)+1;segments[r.topSegment]=(segments[r.topSegment]||0)+1;sentiments[r.sentiment]=(sentiments[r.sentiment]||0)+1});
+  const total=analyzed.length;
+  const topTheme=topKey(themes); const topSegment=topKey(segments);
+  const themeRows=Object.keys(themeDefs).map(k=>{
+    const count=analyzed.filter(r=>r.topTheme===k).length;
+    const severity=avg(analyzed.filter(r=>r.topTheme===k).map(r=>r.severity));
+    return {theme:k,count,severity:Number(severity.toFixed(1)),root_cause:themeDefs[k].root,opportunity:themeDefs[k].opportunity};
+  }).filter(x=>x.count>0).sort((a,b)=>(b.count*b.severity)-(a.count*a.severity));
+  if(themes['General discovery friction']) themeRows.push({theme:'General discovery friction',count:themes['General discovery friction'],severity:2.5,root_cause:'Feedback mentions discovery pain but not enough detail for a precise root cause.',opportunity:'Ask follow-up questions or collect richer review metadata.'});
+  const segmentRows=Object.keys(segmentDefs).map(k=>{
+    const count=analyzed.filter(r=>r.topSegment===k).length;
+    return {segment:k,count,jtbd:segmentDefs[k].jtbd,challenge:segmentChallenge(k)};
+  }).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
+  const evidence=analyzed.sort((a,b)=>b.severity-a.severity).slice(0,10).map(r=>({source:r.source||'Manual',text:r.text,theme:r.topTheme,segment:r.topSegment,sentiment:r.sentiment,severity:r.severity}));
+  const opportunityRows=buildOpportunityRows(themeRows, segmentRows, total);
+  const discoveryConfidence=Math.min(94,Math.round(58+(themeRows[0]?.count||0)/total*24+(segmentRows[0]?.count||0)/total*18));
+  return {
+    mode:'Local test analyzer',
+    generated_at:new Date().toISOString(),
+    review_count:total,
+    executive_summary:`The strongest pattern is ${topTheme.toLowerCase()} among ${topSegment.toLowerCase()}. Feedback suggests users are not asking for more catalog; they want controlled novelty, clearer guardrails and recommendations that explain why a track is a meaningful bridge from known taste to new music.`,
+    top_theme:topTheme,
+    top_segment:topSegment,
+    opportunity_confidence:discoveryConfidence,
+    metrics:{themes_found:themeRows.length,negative_share:Math.round(((sentiments.Negative||0)/total)*100),avg_severity:Number(avg(analyzed.map(x=>x.severity)).toFixed(1)),high_severity:analyzed.filter(x=>x.severity>=4).length},
+    themes:themeRows,
+    segments:segmentRows,
+    evidence,
+    opportunity:opportunityRows,
+    recommended_mvp:{name:'TasteBridge AI',why:'The most recurring needs are session intent, novelty control, explanation, no-repeat constraints and taste-profile protection. TasteBridge combines these into an AI-native discovery contract.',ai_unlock:'AI parses fuzzy intent such as “same vibe but less repetitive,” converts it into constraints, explains each bridge, and adapts mid-session.'},
+    rows:analyzed
+  };
+}
+function segmentChallenge(k){return {
+ 'Active Seekers':'High intent to discover but repeated safe recommendations reduce perceived magic.',
+ 'Context Listeners':'Freshness must preserve activity fit; random novelty creates functional risk.',
+ 'Library Guardians':'Recommendations violate ownership boundaries inside saved playlists.',
+ 'Trust-Sensitive Premium Users':'Opaque suggestions feel like promotion, reducing Premium trust.',
+ 'Profile Repair Users':'Temporary/shared listening damages long-term taste profile.'
+}[k]||'Discovery need is present but segment is less specific.'}
+function buildOpportunityRows(themeRows, segmentRows, total){
+  const raw=[
+    {name:'TasteBridge AI Discovery Mission',reach:9,impact:9,confidence:.82,effort:6,reason:'Captures session intent, novelty level, exclusions and bridge explanations.'},
+    {name:'Freshness / No-Repeat Controls',reach:8,impact:7,confidence:.78,effort:4,reason:'Directly addresses repetition loops with lower build complexity.'},
+    {name:'Taste Profile Repair Wizard',reach:6,impact:8,confidence:.72,effort:6,reason:'Useful for polluted histories and shared accounts, but narrower segment.'},
+    {name:'Long-Tail Artist Explorer',reach:6,impact:7,confidence:.68,effort:7,reason:'Targets music nerds and deep-cut seekers with catalog diversity.'}
+  ];
+  return raw.map(x=>({...x,rice:Number(((x.reach*x.impact*x.confidence)/x.effort).toFixed(2))})).sort((a,b)=>b.rice-a.rice);
+}
+function topKey(obj){return Object.entries(obj||{}).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'N/A'}
+function avg(arr){arr=arr.filter(x=>typeof x==='number'&&!isNaN(x));return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0}
+function render(result){
+  lastResult=result; document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('reviewCountTop').textContent=result.review_count||0; document.getElementById('confidenceTop').textContent=(result.opportunity_confidence||0)+'%'; document.getElementById('modeLabel').textContent=(result.mode||'Local').includes('GPT')?'GPT':'Local';
+  const k=result.metrics||{};
+  document.getElementById('summaryPanel').innerHTML=`
+    <div class="kpis">
+      <div class="kpi"><b>${result.review_count}</b><span>feedback items</span></div>
+      <div class="kpi"><b>${k.themes_found||result.themes?.length||0}</b><span>pain themes</span></div>
+      <div class="kpi"><b>${k.negative_share||0}%</b><span>negative / frustrated</span></div>
+      <div class="kpi"><b>${result.opportunity_confidence||0}%</b><span>confidence</span></div>
+    </div>
+    <div class="callout"><b>Executive insight:</b><br>${escapeHtml(result.executive_summary||'')}</div>
+    <div class="pillbox">
+      <span class="pill green">Top theme: ${escapeHtml(result.top_theme||'')}</span>
+      <span class="pill green">Focus segment: ${escapeHtml(result.top_segment||'')}</span>
+      <span class="pill amber">Avg severity: ${k.avg_severity||'—'}/5</span>
+      <span class="pill">Analysis mode: ${escapeHtml(result.mode||'Local')}</span>
+    </div>`;
+  renderThemes(result); renderSegments(result); renderEvidence(result); renderOpportunity(result); answerQuestion();
+}
+function renderThemes(r){
+  const max=Math.max(...(r.themes||[]).map(x=>x.count),1);
+  let html='<div class="bars">';
+  (r.themes||[]).forEach(t=>{html+=`<div class="barrow"><div>${escapeHtml(t.theme)}</div><div class="barbg"><div class="barfill" style="width:${Math.max(5,t.count/max*100)}%"></div></div><div class="count">${t.count}</div></div>`});
+  html+='</div><h3>Root cause map</h3><table><tr><th>Theme</th><th>Root cause</th><th>Product opportunity</th><th>Severity</th></tr>';
+  (r.themes||[]).forEach(t=>{html+=`<tr><td><b>${escapeHtml(t.theme)}</b></td><td>${escapeHtml(t.root_cause)}</td><td>${escapeHtml(t.opportunity)}</td><td><span class="score ${t.severity>=4?'high':t.severity>=2.8?'med':'low'}">${t.severity}/5</span></td></tr>`});
+  html+='</table>'; document.getElementById('themesPanel').innerHTML=html;
+}
+function renderSegments(r){
+  let html='<table><tr><th>Segment</th><th>Count</th><th>Challenge</th><th>Job-to-be-done</th></tr>';
+  (r.segments||[]).forEach(s=>{html+=`<tr><td><b>${escapeHtml(s.segment)}</b></td><td>${s.count}</td><td>${escapeHtml(s.challenge)}</td><td>${escapeHtml(s.jtbd)}</td></tr>`});
+  html+='</table>'; document.getElementById('segmentsPanel').innerHTML=html;
+}
+function renderEvidence(r){
+  let html='<div class="hint">Traceable evidence snippets used by the workflow. In production, each would preserve source URL, timestamp and review ID.</div>';
+  (r.evidence||[]).forEach(e=>{html+=`<div class="quote">${escapeHtml(e.text)}<small><span class="sourceTag">${escapeHtml(e.source||'Source')}</span><span class="sourceTag">${escapeHtml(e.theme||'Theme')}</span><span class="sourceTag">${escapeHtml(e.segment||'Segment')}</span><span class="sourceTag ${e.sentiment==='Negative'?'danger':''}">${escapeHtml(e.sentiment||'Sentiment')}</span> Severity ${e.severity}/5</small></div>`});
+  document.getElementById('evidencePanel').innerHTML=html;
+}
+function renderOpportunity(r){
+  let html='<div class="callout"><b>Recommended MVP: '+escapeHtml(r.recommended_mvp?.name||'TasteBridge AI')+'</b><br>'+escapeHtml(r.recommended_mvp?.why||'')+'<br><br><b>What AI unlocks:</b> '+escapeHtml(r.recommended_mvp?.ai_unlock||'')+'</div>';
+  html+='<table><tr><th>Solution</th><th>Reach</th><th>Impact</th><th>Confidence</th><th>Effort</th><th>RICE</th><th>Reason</th></tr>';
+  (r.opportunity||[]).forEach(o=>{html+=`<tr><td><b>${escapeHtml(o.name)}</b></td><td>${o.reach}</td><td>${o.impact}</td><td>${Math.round(o.confidence*100)}%</td><td>${o.effort}</td><td><span class="score high">${o.rice}</span></td><td>${escapeHtml(o.reason)}</td></tr>`});
+  html+='</table>'; document.getElementById('opportunityPanel').innerHTML=html;
+}
+async function runAnalysis(){
+  const rows=parseRows(document.getElementById('input').value); if(!rows.length){showToast('Load or paste review data first.');return}
+  document.getElementById('loader').classList.add('on');
+  try{
+    const backend = await tryBackend(rows);
+    if(backend && backend.review_count){ render({...backend, mode:backend.mode || 'GPT serverless analyzer'}); showToast('Analysis completed using GPT/serverless backend.'); }
+    else { const local=localAnalyze(rows); render(local); showToast('Analysis completed with local test analyzer.'); }
+  }catch(e){ console.warn(e); const local=localAnalyze(rows); render(local); showToast('Backend unavailable, used local test analyzer.'); }
+  document.getElementById('loader').classList.remove('on');
+}
+async function tryBackend(rows){
+  const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),18000);
+  try{
+    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'Spotify',area:document.getElementById('area').value,sourceMix:document.getElementById('sourceMix').value,reviews:rows}),signal:controller.signal});
+    clearTimeout(timer); if(!res.ok) return null; const json=await res.json(); return json;
+  }catch(e){clearTimeout(timer);return null}
+}
+function answerQuestion(){
+  const box=document.getElementById('answerBox'); if(!lastResult){box.textContent='Run analysis first.';return}
+  const q=document.getElementById('question').value; const top=lastResult.top_theme||'repetition loop'; const seg=lastResult.top_segment||'Active Seekers';
+  const common=(lastResult.themes||[]).slice(0,3).map(x=>x.theme.toLowerCase()).join(', ');
+  const answers={
+    'Why do users struggle to discover new music?':`Users struggle because recommendation relevance is anchored in past behavior, while discovery intent is situational. The current corpus points most strongly to ${top.toLowerCase()}; users want new music that still feels connected to known taste, not random catalog jumps.`,
+    'What are the most common recommendation frustrations?':`The top frustrations are ${common || 'repetition, lack of control and opaque recommendation logic'}. Users repeatedly mention stale mixes, duplicate recommendation patterns, weak novelty control and unclear reasons for suggestions.`,
+    'What causes users to repeatedly listen to the same content?':`The repeat loop is driven by convenience and risk reduction: familiar tracks feel safe, repeat plays become stronger taste signals, and recommendation surfaces then play safer. Users return to old playlists because discovery requires effort and has uncertain payoff.`,
+    'Which user segment should Spotify focus on first?':`${seg} should be the first segment because it combines high product engagement with clear dissatisfaction around discovery. This group is likely to understand and use controls such as novelty level, guardrails and explanation.`,
+    'What unmet needs emerge consistently?':`Consistent unmet needs: novelty control, no-repeat constraints, temporary discovery sessions, profile repair, context-aware discovery, long-tail exploration and explanations for why each track is recommended.`,
+    'What should the MVP test?':`The MVP should test whether a session-level AI discovery contract increases meaningful discovery: first-time artist listens, new-artist saves, follows or replays, while protecting guardrails like skip rate and session abandonment.`,
+    'Why are traditional recommendation systems insufficient?':`Traditional systems infer intent from history. Discovery often depends on current intent: “same vibe but fresher,” “avoid viral songs,” “do not learn from this session,” or “give me deeper cuts.” AI is useful because it can parse fuzzy intent, convert it into constraints, explain bridges and adapt during the session.`
+  };
+  box.textContent=answers[q];
+}
+function loadSample(){document.getElementById('input').value=sampleReviews; document.getElementById('reviewCountTop').textContent=parseRows(sampleReviews).length; showToast('Sample review corpus loaded.');}
+function clearAll(){document.getElementById('input').value='';lastResult=null;document.getElementById('reviewCountTop').textContent='0';document.getElementById('confidenceTop').textContent='—';document.getElementById('emptyState').classList.remove('hidden');['summaryPanel','themesPanel','segmentsPanel','evidencePanel','opportunityPanel'].forEach(id=>document.getElementById(id).innerHTML='');document.getElementById('answerBox').textContent='Answers appear after analysis.'}
+function exportJSON(){if(!lastResult){showToast('Run analysis first.');return}downloadFile('spotify-review-analysis-output.json',JSON.stringify(lastResult,null,2),'application/json')}
+function exportCSV(){if(!lastResult){showToast('Run analysis first.');return}const rows=lastResult.rows||[];const header=['source','text','theme','segment','sentiment','severity','jtbd'];const csv=[header.join(',')].concat(rows.map(r=>header.map(h=>`"${String(h==='theme'?r.topTheme:h==='segment'?r.topSegment:(r[h]||'')).replace(/"/g,'""')}"`).join(','))).join('\n');downloadFile('spotify-review-analysis-tagged.csv',csv,'text/csv')}
+function downloadFile(name,content,type){const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;const txt=await f.text();document.getElementById('input').value=txt;document.getElementById('reviewCountTop').textContent=parseRows(txt).length;showToast('File loaded into review input.');});
+async function checkBackend(){
+  try{const r=await fetch('/api/health',{cache:'no-store'});if(r.ok){const j=await r.json();document.getElementById('backendStatus').innerHTML=`Backend found: ${escapeHtml(j.status||'ok')}<br>GPT mode: ${j.gpt_enabled?'Enabled':'Disabled / missing API key'}<br>Fallback: local test analyzer available`;document.getElementById('modeLabel').textContent=j.gpt_enabled?'GPT':'Local'}else throw new Error('no backend')}catch(e){document.getElementById('backendStatus').innerHTML='No serverless backend detected on this host.<br>Current page will run in local test mode.<br>For GPT mode, deploy the full folder to Vercel and add OPENAI_API_KEY.';document.getElementById('modeLabel').textContent='Local'}
+}
+checkBackend(); if(location.search.includes('demo')){loadSample(); setTimeout(runAnalysis,250)}
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/", "destination": "/workflow.html?demo" }
+  ],
+  "functions": {
+    "api/analyze.js": { "maxDuration": 25 }
+  }
+}
